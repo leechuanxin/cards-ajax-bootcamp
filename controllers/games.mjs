@@ -103,7 +103,7 @@ const makeDeck = function () {
 
 export default function initGamesController(db) {
   // render the main page
-  const index = (request, response) => {
+  const index = async (request, response) => {
     response.render('games/index');
   };
 
@@ -113,16 +113,44 @@ export default function initGamesController(db) {
     const cardDeck = shuffleCards(makeDeck());
     const playerHand = [cardDeck.pop(), cardDeck.pop()];
 
-    const newGame = {
-      gameState: {
-        cardDeck,
-        playerHand,
-      },
-    };
-
     try {
+      const user = await db.User.findOne({
+        where: {
+          id: request.cookies.userId,
+        },
+        attributes: { exclude: ['password'] },
+      });
+
+      if (!user) {
+        throw new Error('You need to be logged in!');
+      }
+
+      const users = await db.User.findAll({
+        where: {
+          id: {
+            [db.Sequelize.Op.not]: user.dataValues.id,
+          },
+        },
+        attributes: { exclude: ['password'] },
+      });
+
+      const randomIndex = Math.floor(Math.random() * users.length);
+
+      const newGame = {
+        gameState: {
+          cardDeck,
+          playerHand,
+        },
+      };
+
       // run the DB INSERT query
       const game = await db.Game.create(newGame);
+
+      // create entries in games_users table
+      await Promise.all([
+        game.addUser(user),
+        game.addUser(users[randomIndex]),
+      ]);
 
       // send the new game back to the user.
       // dont include the deck so the user can't cheat
@@ -150,7 +178,6 @@ export default function initGamesController(db) {
           cardDeck: game.gameState.cardDeck,
           playerHand,
         },
-
       });
 
       // send the updated game back to the user.

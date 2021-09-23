@@ -106,20 +106,22 @@ if (loggedInUser && loggedInUser !== '') {
 }
 
 const loginSignupButton = document.querySelector('#loginSignupButton');
-loginSignupButton.addEventListener('click', () => {
-  let inputs = [...loginForm.querySelectorAll('input')];
-  inputs = inputs.map((input) => input.value);
-  const dataToSend = {
-    username: inputs[0],
-    password: inputs[1],
-  };
-  axios
-    .post('/login', dataToSend)
-    .then((response) => {
-      if (response.data.loggedIn) {
-        loginForm.innerHTML = '';
-        createGameContainer.classList.toggle('d-none');
-      }
-    })
-    .catch((err) => console.log('err :>> ', err));
-});
+if (loginSignupButton) {
+  loginSignupButton.addEventListener('click', () => {
+    let inputs = [...loginForm.querySelectorAll('input')];
+    inputs = inputs.map((input) => input.value);
+    const dataToSend = {
+      username: inputs[0],
+      password: inputs[1],
+    };
+    axios
+      .post('/login', dataToSend)
+      .then((response) => {
+        if (response.data.loggedIn) {
+          loginForm.innerHTML = '';
+          createGameContainer.classList.toggle('d-none');
+        }
+      })
+      .catch((err) => console.log('err :>> ', err));
+  });
+}

@@ -16,6 +16,10 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 db.Game = gameModel(sequelize, Sequelize.DataTypes);
 db.User = userModel(sequelize, Sequelize.DataTypes);
 
+// in order for the many-to-many to work we must mention the join table here.
+db.Game.belongsToMany(db.User, { through: 'games_users' });
+db.User.belongsToMany(db.Game, { through: 'games_users' });
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
