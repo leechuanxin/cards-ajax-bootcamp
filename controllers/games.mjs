@@ -111,7 +111,7 @@ export default function initGamesController(db) {
   const create = async (request, response) => {
     // deal out a new shuffled deck for this game.
     const cardDeck = shuffleCards(makeDeck());
-    const playerHand = [cardDeck.pop(), cardDeck.pop()];
+    // const playerHand = [cardDeck.pop(), cardDeck.pop()];
 
     try {
       const user = await db.User.findOne({
@@ -139,7 +139,7 @@ export default function initGamesController(db) {
       const newGame = {
         gameState: {
           cardDeck,
-          playerHand,
+          // playerHand,
         },
       };
 
@@ -157,6 +157,7 @@ export default function initGamesController(db) {
       response.send({
         id: game.id,
         playerHand: game.gameState.playerHand,
+        otherPlayer: users[randomIndex].dataValues,
       });
     } catch (error) {
       response.status(500).send(error);
@@ -168,6 +169,17 @@ export default function initGamesController(db) {
     try {
       // get the game by the ID passed in the request
       const game = await db.Game.findByPk(request.params.id);
+
+      const players = await game.getUsers({
+        where: {
+          id: {
+            [db.Sequelize.Op.not]: request.cookies.userId,
+          },
+        },
+        attributes: { exclude: ['password'] },
+      });
+
+      console.log('deal - these are the players:', players);
 
       // make changes to the object
       const playerHand = [game.gameState.cardDeck.pop(), game.gameState.cardDeck.pop()];
@@ -185,6 +197,7 @@ export default function initGamesController(db) {
       response.send({
         id: game.id,
         playerHand: game.gameState.playerHand,
+        otherPlayer: players[0].dataValues,
       });
     } catch (error) {
       response.status(500).send(error);

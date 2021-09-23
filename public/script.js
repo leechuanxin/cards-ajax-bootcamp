@@ -5,23 +5,35 @@ let currentGame = null;
 
 // create game btn
 const createGameBtn = document.createElement('button');
+const createGameContainer = document.createElement('div');
+const createGameRow = document.createElement('div');
+const createGameCol = document.createElement('div');
 
 // DOM manipulation function that displays the player's current hand.
-const runGame = function ({ playerHand }) {
+const runGame = function ({ playerHand, otherPlayer }) {
   // manipulate DOM
   const gameContainer = document.querySelector('#game-container');
-
-  gameContainer.innerText = `
+  gameContainer.innerHTML = '';
+  const player1Div = document.createElement('div');
+  const player2Div = document.createElement('div');
+  player1Div.classList.add('col-6');
+  player2Div.classList.add('col-6');
+  player1Div.innerText = `
     Your Hand:
     ====
     ${playerHand[0].name}
     of
     ${playerHand[0].suit}
+  `;
+  player2Div.innerText = `
+    ${otherPlayer.realName}'s Hand:
     ====
     ${playerHand[1].name}
     of
     ${playerHand[1].suit}
   `;
+  gameContainer.appendChild(player1Div);
+  gameContainer.appendChild(player2Div);
 };
 
 // make a request to the server
@@ -42,6 +54,7 @@ const dealCards = function () {
 };
 
 const createGame = function () {
+  createGameContainer.classList.toggle('d-none');
   // Make a request to create a new game
   axios.post('/games')
     .then((response) => {
@@ -51,17 +64,26 @@ const createGame = function () {
       console.log(currentGame);
 
       // display it out to the user
-      runGame(currentGame);
+      // runGame(currentGame);
 
       // for this current game, create a button that will allow the user to
       // manipulate the deck that is on the DB.
       // Create a button for it.
+      const dealContainer = document.createElement('div');
+      const dealRow = document.createElement('div');
+      const dealCol = document.createElement('div');
+      dealContainer.classList.add('container');
+      dealRow.classList.add('row');
+      dealCol.className = 'col-12 text-center mt-3';
       const dealBtn = document.createElement('button');
       dealBtn.addEventListener('click', dealCards);
 
       // display the button
       dealBtn.innerText = 'Deal';
-      document.body.appendChild(dealBtn);
+      dealCol.appendChild(dealBtn);
+      dealRow.appendChild(dealCol);
+      dealContainer.appendChild(dealRow);
+      document.body.appendChild(dealContainer);
     })
     .catch((error) => {
       // handle error
@@ -72,11 +94,8 @@ const createGame = function () {
 // manipulate DOM, set up create game button
 createGameBtn.addEventListener('click', createGame);
 createGameBtn.innerText = 'Create Game';
-const createGameContainer = document.createElement('div');
 createGameContainer.className = 'container mt-3 d-none';
-const createGameRow = document.createElement('div');
 createGameRow.classList.add('row');
-const createGameCol = document.createElement('div');
 createGameCol.className = 'col-12 text-center';
 createGameCol.appendChild(createGameBtn);
 createGameRow.appendChild(createGameCol);
