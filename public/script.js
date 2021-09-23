@@ -1,3 +1,5 @@
+const loginForm = document.querySelector('#loginForm');
+
 // global value that holds info about the current hand.
 let currentGame = null;
 
@@ -70,4 +72,54 @@ const createGame = function () {
 // manipulate DOM, set up create game button
 createGameBtn.addEventListener('click', createGame);
 createGameBtn.innerText = 'Create Game';
-document.body.appendChild(createGameBtn);
+const createGameContainer = document.createElement('div');
+createGameContainer.className = 'container mt-3 d-none';
+const createGameRow = document.createElement('div');
+createGameRow.classList.add('row');
+const createGameCol = document.createElement('div');
+createGameCol.className = 'col-12 text-center';
+createGameCol.appendChild(createGameBtn);
+createGameRow.appendChild(createGameCol);
+createGameContainer.appendChild(createGameRow);
+document.body.appendChild(createGameContainer);
+
+const getCookie = (cname) => {
+  const name = `${cname}=`;
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const ca = decodedCookie.split(';');
+  for (let i = 0; i < ca.length; i += 1) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) === 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return '';
+};
+
+const loggedInUser = getCookie('userId');
+if (loggedInUser && loggedInUser !== '') {
+  loginForm.innerHTML = '';
+  createGameContainer.classList.toggle('d-none');
+}
+
+const loginSignupButton = document.querySelector('#loginSignupButton');
+loginSignupButton.addEventListener('click', () => {
+  let inputs = [...loginForm.querySelectorAll('input')];
+  inputs = inputs.map((input) => input.value);
+  const dataToSend = {
+    username: inputs[0],
+    password: inputs[1],
+  };
+  axios
+    .post('/login', dataToSend)
+    .then((response) => {
+      if (response.data.loggedIn) {
+        loginForm.innerHTML = '';
+        createGameContainer.classList.toggle('d-none');
+      }
+    })
+    .catch((err) => console.log('err :>> ', err));
+});
