@@ -29,44 +29,46 @@ const runGame = function ({
   playerHand, otherPlayer, winner, scores,
 }) {
   // manipulate DOM
-  const gameContainer = document.querySelector('#game-container');
-  gameContainer.innerHTML = '';
-  const refreshButton = document.createElement('button');
-  refreshButton.innerText = 'Refresh';
-  const btnDiv = document.createElement('div');
-  btnDiv.className = 'col-12 text-end';
-  btnDiv.addEventListener('click', triggerRefresh);
-  btnDiv.appendChild(refreshButton);
-  const player1Div = document.createElement('div');
-  const player2Div = document.createElement('div');
-  const feedbackDiv = document.createElement('div');
-  feedbackDiv.className = 'col-12 text-center mt-5';
-  player1Div.className = 'col-6 text-center';
-  player2Div.className = 'col-6 text-center';
-  player1Div.innerText = `
+  if (playerHand.length >= 2) {
+    const gameContainer = document.querySelector('#game-container');
+    gameContainer.innerHTML = '';
+    const refreshButton = document.createElement('button');
+    refreshButton.innerText = 'Refresh';
+    const btnDiv = document.createElement('div');
+    btnDiv.className = 'col-12 text-end';
+    btnDiv.addEventListener('click', triggerRefresh);
+    btnDiv.appendChild(refreshButton);
+    const player1Div = document.createElement('div');
+    const player2Div = document.createElement('div');
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = 'col-12 text-center mt-5';
+    player1Div.className = 'col-6 text-center';
+    player2Div.className = 'col-6 text-center';
+    player1Div.innerText = `
     Your Hand:
     ====
     ${playerHand[0].name}
     of
     ${playerHand[0].suit}
   `;
-  player2Div.innerText = `
+    player2Div.innerText = `
     ${otherPlayer.realName}'s Hand:
     ====
     ${playerHand[1].name}
     of
     ${playerHand[1].suit}
   `;
-  if (winner && winner.realName) {
-    feedbackDiv.innerHTML = `<strong>${winner.realName}</strong> has won this round!`;
-  } else {
-    feedbackDiv.innerHTML = 'It\'s a tie!';
+    if (winner && winner.realName) {
+      feedbackDiv.innerHTML = `<strong>${winner.realName}</strong> has won this round!`;
+    } else {
+      feedbackDiv.innerHTML = 'It\'s a tie!';
+    }
+    feedbackDiv.innerHTML += `<br/><br/><strong>Current Scores:</strong><br/><em>You:</em> ${scores[0]}<br/><em>${otherPlayer.realName}:</em> ${scores[1]}<br/>`;
+    gameContainer.appendChild(btnDiv);
+    gameContainer.appendChild(player1Div);
+    gameContainer.appendChild(player2Div);
+    gameContainer.appendChild(feedbackDiv);
   }
-  feedbackDiv.innerHTML += `<br/><br/><strong>Current Scores:</strong><br/><em>You:</em> ${scores[0]}<br/><em>${otherPlayer.realName}:</em> ${scores[1]}<br/>`;
-  gameContainer.appendChild(btnDiv);
-  gameContainer.appendChild(player1Div);
-  gameContainer.appendChild(player2Div);
-  gameContainer.appendChild(feedbackDiv);
 
   const dealContainer = document.querySelector('#dealContainer');
   if (!dealContainer) {
