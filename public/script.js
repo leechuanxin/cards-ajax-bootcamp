@@ -10,14 +10,18 @@ const createGameRow = document.createElement('div');
 const createGameCol = document.createElement('div');
 
 // DOM manipulation function that displays the player's current hand.
-const runGame = function ({ playerHand, otherPlayer }) {
+const runGame = function ({
+  playerHand, otherPlayer, winner, scores,
+}) {
   // manipulate DOM
   const gameContainer = document.querySelector('#game-container');
   gameContainer.innerHTML = '';
   const player1Div = document.createElement('div');
   const player2Div = document.createElement('div');
-  player1Div.classList.add('col-6');
-  player2Div.classList.add('col-6');
+  const feedbackDiv = document.createElement('div');
+  feedbackDiv.className = 'col-12 text-center mt-5';
+  player1Div.className = 'col-6 text-center';
+  player2Div.className = 'col-6 text-center';
   player1Div.innerText = `
     Your Hand:
     ====
@@ -32,8 +36,15 @@ const runGame = function ({ playerHand, otherPlayer }) {
     of
     ${playerHand[1].suit}
   `;
+  if (winner && winner.realName) {
+    feedbackDiv.innerHTML = `<strong>${winner.realName}</strong> has won this round!`;
+  } else {
+    feedbackDiv.innerHTML = 'It\'s a tie!';
+  }
+  feedbackDiv.innerHTML += `<br/><br/><strong>Current Scores:</strong><br/><em>You:</em> ${scores[0]}<br/><em>${otherPlayer.realName}:</em> ${scores[1]}<br/>`;
   gameContainer.appendChild(player1Div);
   gameContainer.appendChild(player2Div);
+  gameContainer.appendChild(feedbackDiv);
 };
 
 // make a request to the server
@@ -60,8 +71,6 @@ const createGame = function () {
     .then((response) => {
       // set the global value to the new game.
       currentGame = response.data;
-
-      console.log(currentGame);
 
       // display it out to the user
       // runGame(currentGame);

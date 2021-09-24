@@ -139,7 +139,10 @@ export default function initGamesController(db) {
       const newGame = {
         gameState: {
           cardDeck,
-          // playerHand,
+          winner: {},
+          scores: [0, 0],
+          playerHand: [],
+          otherPlayer: users[randomIndex].dataValues,
         },
       };
 
@@ -168,7 +171,28 @@ export default function initGamesController(db) {
   const deal = async (request, response) => {
     try {
       // get the game by the ID passed in the request
-      const game = await db.Game.findByPk(request.params.id);
+      let game = await db.Game.findByPk(request.params.id);
+
+      if (game.gameState.cardDeck.length < 2) {
+        game = await game.update({
+          gameState: {
+            cardDeck: shuffleCards(makeDeck()),
+            winner: game.gameState.winner,
+            scores: game.gameState.scores,
+            playerHand: game.gameState.playerHand,
+            otherPlayer: game.gameState.otherPlayer,
+          },
+        }, {
+          returning: true,
+        });
+      }
+
+      const user = await db.User.findOne({
+        where: {
+          id: request.cookies.userId,
+        },
+        attributes: { exclude: ['password'] },
+      });
 
       const players = await game.getUsers({
         where: {
@@ -179,16 +203,29 @@ export default function initGamesController(db) {
         attributes: { exclude: ['password'] },
       });
 
-      console.log('deal - these are the players:', players);
-
       // make changes to the object
       const playerHand = [game.gameState.cardDeck.pop(), game.gameState.cardDeck.pop()];
+      const player1Card = playerHand[0];
+      const player2Card = playerHand[1];
+
+      let winner = {};
+      const { scores } = game.gameState;
+
+      if (player1Card.rank > player2Card.rank) {
+        winner = user.dataValues;
+        scores[0] += 1;
+      } else if (player1Card.rank < player2Card.rank) {
+        winner = players[0].dataValues;
+        scores[1] += 1;
+      }
 
       // update the game with the new info
       await game.update({
         gameState: {
           cardDeck: game.gameState.cardDeck,
           playerHand,
+          winner,
+          scores,
         },
       });
 
@@ -198,9 +235,11 @@ export default function initGamesController(db) {
         id: game.id,
         playerHand: game.gameState.playerHand,
         otherPlayer: players[0].dataValues,
+        winner,
+        scores,
       });
     } catch (error) {
-      response.status(500).send(error);
+      response.status(500).send(error.stack);
     }
   };
 
