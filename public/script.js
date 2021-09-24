@@ -67,6 +67,30 @@ const runGame = function ({
   gameContainer.appendChild(player1Div);
   gameContainer.appendChild(player2Div);
   gameContainer.appendChild(feedbackDiv);
+
+  const dealContainer = document.querySelector('#dealContainer');
+  if (!dealContainer) {
+    renderDealBtn();
+  }
+};
+
+const renderDealBtn = () => {
+  const dealContainer = document.createElement('div');
+  const dealRow = document.createElement('div');
+  const dealCol = document.createElement('div');
+  dealContainer.id = 'dealContainer';
+  dealContainer.classList.add('container');
+  dealRow.classList.add('row');
+  dealCol.className = 'col-12 text-center mt-3';
+  const dealBtn = document.createElement('button');
+  dealBtn.addEventListener('click', dealCards);
+
+  // display the button
+  dealBtn.innerText = 'Deal';
+  dealCol.appendChild(dealBtn);
+  dealRow.appendChild(dealCol);
+  dealContainer.appendChild(dealRow);
+  document.body.appendChild(dealContainer);
 };
 
 // make a request to the server
@@ -100,21 +124,10 @@ const createGame = function () {
       // for this current game, create a button that will allow the user to
       // manipulate the deck that is on the DB.
       // Create a button for it.
-      const dealContainer = document.createElement('div');
-      const dealRow = document.createElement('div');
-      const dealCol = document.createElement('div');
-      dealContainer.classList.add('container');
-      dealRow.classList.add('row');
-      dealCol.className = 'col-12 text-center mt-3';
-      const dealBtn = document.createElement('button');
-      dealBtn.addEventListener('click', dealCards);
-
-      // display the button
-      dealBtn.innerText = 'Deal';
-      dealCol.appendChild(dealBtn);
-      dealRow.appendChild(dealCol);
-      dealContainer.appendChild(dealRow);
-      document.body.appendChild(dealContainer);
+      const dealContainer = document.querySelector('#dealContainer');
+      if (!dealContainer) {
+        renderDealBtn();
+      }
     })
     .catch((error) => {
       // handle error
@@ -152,7 +165,20 @@ const getCookie = (cname) => {
 const loggedInUser = getCookie('userId');
 if (loggedInUser && loggedInUser !== '') {
   loginForm.innerHTML = '';
-  createGameContainer.classList.toggle('d-none');
+  let gameObj = {};
+  axios.get('/games/showusergame')
+    .then((response) => {
+      gameObj = { ...gameObj, ...response.data.gameState };
+      if (Object.keys(gameObj).length > 0) {
+        // display it to the user
+        gameObj = { ...gameObj, id: response.data.id };
+        currentGame = gameObj;
+        runGame(currentGame);
+      } else {
+        createGameContainer.classList.toggle('d-none');
+      }
+    })
+    .catch((err) => console.log('err :>> ', err));
 }
 
 const loginSignupButton = document.querySelector('#loginSignupButton');

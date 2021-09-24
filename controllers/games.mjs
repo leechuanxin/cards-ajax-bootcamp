@@ -244,7 +244,6 @@ export default function initGamesController(db) {
     }
   };
 
-  // deal two new cards from the deck.
   const show = async (request, response) => {
     try {
       // get the game by the ID passed in the request
@@ -262,6 +261,27 @@ export default function initGamesController(db) {
     }
   };
 
+  const showUserGame = async (request, response) => {
+    try {
+      const user = await db.User.findOne({
+        where: {
+          id: request.cookies.userId,
+        },
+        attributes: { exclude: ['password'] },
+      });
+
+      if (!user) {
+        throw new Error('You need to be logged in!');
+      }
+
+      const game = await user.getGames();
+
+      response.send(game[0]);
+    } catch (error) {
+      response.status(500).send(error.stack);
+    }
+  };
+
   // return all functions we define in an object
   // refer to the routes file above to see this used
   return {
@@ -269,5 +289,6 @@ export default function initGamesController(db) {
     create,
     index,
     show,
+    showUserGame,
   };
 }
