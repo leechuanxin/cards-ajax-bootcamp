@@ -226,6 +226,7 @@ export default function initGamesController(db) {
           playerHand,
           winner,
           scores,
+          otherPlayer: game.gameState.otherPlayer,
         },
       });
 
@@ -243,11 +244,30 @@ export default function initGamesController(db) {
     }
   };
 
+  // deal two new cards from the deck.
+  const show = async (request, response) => {
+    try {
+      // get the game by the ID passed in the request
+      const game = await db.Game.findByPk(request.params.id);
+
+      response.send({
+        id: game.id,
+        playerHand: game.gameState.playerHand,
+        otherPlayer: game.gameState.otherPlayer,
+        winner: game.gameState.winner,
+        scores: game.gameState.scores,
+      });
+    } catch (error) {
+      response.status(500).send(error.stack);
+    }
+  };
+
   // return all functions we define in an object
   // refer to the routes file above to see this used
   return {
     deal,
     create,
     index,
+    show,
   };
 }

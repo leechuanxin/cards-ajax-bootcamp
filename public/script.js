@@ -9,6 +9,21 @@ const createGameContainer = document.createElement('div');
 const createGameRow = document.createElement('div');
 const createGameCol = document.createElement('div');
 
+const triggerRefresh = () => {
+  axios.get(`/games/${currentGame.id}/show`)
+    .then((response) => {
+      // get the updated hand value
+      currentGame = response.data;
+
+      // display it to the user
+      runGame(currentGame);
+    })
+    .catch((error) => {
+      // handle error
+      console.log(error);
+    });
+};
+
 // DOM manipulation function that displays the player's current hand.
 const runGame = function ({
   playerHand, otherPlayer, winner, scores,
@@ -16,6 +31,12 @@ const runGame = function ({
   // manipulate DOM
   const gameContainer = document.querySelector('#game-container');
   gameContainer.innerHTML = '';
+  const refreshButton = document.createElement('button');
+  refreshButton.innerText = 'Refresh';
+  const btnDiv = document.createElement('div');
+  btnDiv.className = 'col-12 text-end';
+  btnDiv.addEventListener('click', triggerRefresh);
+  btnDiv.appendChild(refreshButton);
   const player1Div = document.createElement('div');
   const player2Div = document.createElement('div');
   const feedbackDiv = document.createElement('div');
@@ -42,6 +63,7 @@ const runGame = function ({
     feedbackDiv.innerHTML = 'It\'s a tie!';
   }
   feedbackDiv.innerHTML += `<br/><br/><strong>Current Scores:</strong><br/><em>You:</em> ${scores[0]}<br/><em>${otherPlayer.realName}:</em> ${scores[1]}<br/>`;
+  gameContainer.appendChild(btnDiv);
   gameContainer.appendChild(player1Div);
   gameContainer.appendChild(player2Div);
   gameContainer.appendChild(feedbackDiv);
